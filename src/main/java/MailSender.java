@@ -92,7 +92,7 @@ public class MailSender {
                     mailData.put("username", accountProperties.get("username"));
                     mailData.put("password", accountProperties.get("password"));
 
-                    SendMailTLS.send(mailData);
+                    SendMailSSL.send(mailData);
 
                 } catch (Exception e) {
                     e.printStackTrace();
