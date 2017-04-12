@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
@@ -24,6 +25,9 @@ public class MailSender {
     private final static Logger logger = Logger.getLogger(MailSender.class.getName());
     static FileHandler logFileHandler;
 
+    public static Logger getLogger() {
+        return logger;
+    }
 
     public static void main(String[] args){
 
@@ -42,7 +46,7 @@ public class MailSender {
             Util.printProperties(accountProperties);
 
             // recipients
-            List<String> recipients = Util.parseRecipients(emailProperties.get("recipients"));
+            List<String> recipients = Util.parseRecipients(emailProperties.get("recipientsSource"));
             Util.printRecipients(recipients);
 
             Util.sendEmails(emailProperties, accountProperties, recipients);
@@ -59,29 +63,41 @@ public class MailSender {
     // UTIL
     public static class Util {
 
-        public static void sendEmails(Map<String, String> emailProperties, Map<String, String> accountProperties, List<String> recipients) {
+        static Function<String, String> transforRecipientEmailToName = (email) ->  email.substring(0, email.indexOf('@'));
 
-            // email body template
+        public static void sendEmails(Map<String, String> emailProperties, Map<String, String> accountProperties, List<String> recipients) throws Exception{
+
+
+            // params to email body template
             String senderName = emailProperties.get("senderName");
-            String subject = emailProperties.get("subject");
 
             STGroup templateGrp = new STGroupDir(Paths.get("." ).normalize().toAbsolutePath().toString(), "UTF-8", '{', '}');
 
-            for ( String recipientName : recipients) {
+            for ( String recipientEmail : recipients) {
 
-                String tplName = emailProperties.get("emailBodyTemplate");
-                ST emailBodyTemplate = templateGrp.getInstanceOf(tplName);
-                emailBodyTemplate.add("senderName", senderName);
-                emailBodyTemplate.add("recipientName", recipientName);
+                try{
 
-                String parsedBody = emailBodyTemplate.render();
+                    String tplName = emailProperties.get("emailBodyTemplate");
+                    ST emailBodyTemplate = templateGrp.getInstanceOf(tplName);
+                    emailBodyTemplate.add("senderName", senderName);
+                    emailBodyTemplate.add("recipientName", transforRecipientEmailToName.apply(recipientEmail));
+                    String parsedBody = emailBodyTemplate.render();
 
-                logger.info("----------------------Email--------------------");
-                logger.info("senderName :: " + senderName);
-                logger.info("recipientName :: " + recipientName);
-                logger.info("subject :: " + subject);
-                logger.info("Body :: " + parsedBody);
-                logger.info("----------------------End Email--------------------");
+
+                    Map<String, String> mailData = new HashMap<>();
+                    mailData.put("body", parsedBody);
+                    mailData.put("recipientEmail", recipientEmail);
+                    mailData.put("subject", emailProperties.get("subject"));
+                    mailData.put("senderEmail", accountProperties.get("email"));
+                    mailData.put("username", accountProperties.get("username"));
+                    mailData.put("password", accountProperties.get("password"));
+
+                    SendMailTLS.send(mailData);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // TODO:  handling errors
+                }
             }
 
         }

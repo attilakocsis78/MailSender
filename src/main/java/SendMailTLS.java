@@ -4,7 +4,9 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Created by ex63046 on 2017.04.11..
@@ -13,10 +15,24 @@ import java.util.Properties;
  */
 public class SendMailTLS {
 
-    public static void send() throws Exception{
+    private final static Logger logger = MailSender.getLogger();
 
-        final String username = "username@gmail.com";
-        final String password = "password";
+
+    public static void send(Map<String, String> mailData) throws Exception{
+
+        final String body = mailData.get("body");
+        final String recipientEmail = mailData.get("recipientEmail");
+        final String subject = mailData.get("subject");
+        final String senderEmail = mailData.get("senderEmail");
+        final String username = mailData.get("username");
+        final String password = mailData.get("password");
+
+
+        logger.info("----------------------Email--------------------");
+        logger.info("senderEmail :: " + senderEmail);
+        logger.info("recipientEmail :: " + recipientEmail);
+        logger.info("subject :: " + subject);
+        logger.info("body :: " + body);
 
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -32,16 +48,16 @@ public class SendMailTLS {
                 });
 
         Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress("from-email@gmail.com"));
+        message.setFrom(new InternetAddress(senderEmail));
         message.setRecipients(Message.RecipientType.TO,
-                InternetAddress.parse("to-email@gmail.com"));
-        message.setSubject("Testing Subject");
-        message.setText("Dear Mail Crawler,"
-                + "\n\n No spam to my email, please!");
+                InternetAddress.parse(recipientEmail));
+        message.setSubject(subject);
+        message.setText(body);
 
         Transport.send(message);
 
-        System.out.println("Done");
+        logger.info("Email sent.");
+        logger.info("----------------------End Email--------------------");
     }
 
 }
