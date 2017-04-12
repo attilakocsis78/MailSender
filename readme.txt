@@ -5,7 +5,8 @@ I. Input:
 		- subject: the mail's subject
 		- emailBodyTemplate: the mail's body. It is a stringtemplate file to preserve text formatting. !Don't change the first and the last line
 		- senderName : you can use it in the tmeplate as parameter in the format of : {senderName}
-		- recipientSource: the name of the file what is contains the recipinets list. Thre is one email address / line
+		- recipientSource: the name of the file what contains the recipinets list. Thre is one email address / line
+		- alreadySentRecipientsSource: the name of the file what contains the list of email addresses to where email was already sent by the application
 		There is an another template parameter : {recipientName} . It is calculeted from the recipient email address by cutting the @domain part from the addtress.
 		pl: JohnDoo@gmail.com -> johnDoo
 
