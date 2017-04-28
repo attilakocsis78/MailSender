@@ -1,7 +1,4 @@
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.Function;
@@ -65,7 +62,11 @@ public class MailSender {
 
         } catch (Exception e) {
             e.printStackTrace();
-            logger.severe(e.getMessage());
+
+            StringWriter errors = new StringWriter();
+            e.printStackTrace(new PrintWriter(errors));
+
+            logger.severe(e.getMessage() + " - "  + errors);
         }
     }
 
@@ -109,7 +110,7 @@ public class MailSender {
                         mailData.put("username", accountProperties.get("username"));
                         mailData.put("password", accountProperties.get("password"));
 
-                        //SendMailSSL.send(mailData);
+                        SendMailSSL.send(mailData);
 
                         // add to sent mails
                         newAlreadySentRecipients.add(recipientEmail);
@@ -185,6 +186,7 @@ public class MailSender {
 
 
         public static List<String> parseEmailAdressesFromFile(String fileName) throws Exception{
+            logger.info(fileName);
             Path path = Paths.get(".", fileName);
 
             try(Stream<String> lines = Files.lines(path)){

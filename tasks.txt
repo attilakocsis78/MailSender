@@ -1,0 +1,3 @@
+- recipientName : cella legelső sora, vagyis a cégnév
+- packageSize: mennyit kuldjon el egy futtatásra
+- wrongEmail: Gyűjtsük ki ha hibát dob vmelyik email és azokra se futtassuk még1x
