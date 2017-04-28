@@ -47,8 +47,16 @@ public class MailSender {
             Util.printRecipients(alreadySentRecipients, "Already sent recipients");
             List<String> newAlreadySentRecipients = new ArrayList<>();
 
+            // bad emails
+            List<String> badEmails = Util.parseBadEmails(emailProperties.get("badEmailAddresses"));
+            Util.printRecipients(badEmails, "Bad e-mail addresses");
+            List<String> newBadEmails = new ArrayList<>();
+
+            int packageSize = Integer.parseInt(emailProperties.get("packageSize"));
+
             try{
-                Util.sendEmails(emailProperties, accountProperties, recipients, alreadySentRecipients, newAlreadySentRecipients);
+                Util.sendEmails(emailProperties, accountProperties, recipients,
+                        alreadySentRecipients, newAlreadySentRecipients, badEmails, newBadEmails, packageSize);
             } catch (Exception e) {
                 throw  e;
             } finally {
@@ -56,17 +64,20 @@ public class MailSender {
                 if (newAlreadySentRecipients.size() > 0) {
                     Util.writeToFile(newAlreadySentRecipients, Paths.get(".", emailProperties.get("alreadySentRecipientsSource")));
                 }
+
+                // write bad emails
+                if (newBadEmails.size() > 0) {
+                    Util.writeToFile(newBadEmails, Paths.get(".", emailProperties.get("badEmailAddresses")));
+                }
             }
 
 
 
         } catch (Exception e) {
             e.printStackTrace();
-
             StringWriter errors = new StringWriter();
             e.printStackTrace(new PrintWriter(errors));
-
-            logger.severe(e.getMessage() + " - "  + errors);
+            logger.severe(e.getMessage() + " : "  + errors);
         }
     }
 
@@ -76,7 +87,16 @@ public class MailSender {
 
         static Function<String, String> transforRecipientEmailToName = (email) ->  email.substring(0, email.indexOf('@'));
 
-        public static void sendEmails(Map<String, String> emailProperties, Map<String, String> accountProperties, List<String> recipients, List<String> alreadySentRecipients, List<String> newAlreadySentRecipients) throws Exception{
+        public static void sendEmails(
+                Map<String,
+                String> emailProperties,
+                Map<String, String> accountProperties,
+                List<String> recipients,
+                List<String> alreadySentRecipients,
+                List<String> newAlreadySentRecipients,
+                List<String> badEmails,
+                List<String> newBadEmails,
+                int packageSize) throws Exception{
             // params to email body template
             String senderName = emailProperties.get("senderName");
 
@@ -86,19 +106,31 @@ public class MailSender {
 
             try {
 
-                for (String recipientEmail : recipients) {
+                for (String recipientLine : recipients) {
 
-                    if (alreadySentRecipients.contains(recipientEmail)) {
-                        logger.info("Mail already sent to " + recipientEmail + ". Don't send it again.");
+                    if (counter >= packageSize) {
+                        break;
+                    }
+
+                    if (alreadySentRecipients.contains(recipientLine) || newAlreadySentRecipients.contains(recipientLine)) {
+                        logger.info("Mail already sent to " + recipientLine + ". Don't send it again.");
+                        continue;
+                    }
+
+                    if (badEmails.contains(recipientLine) || newBadEmails.contains(recipientLine)) {
+                        logger.info("Mail is a bad email " + recipientLine + ". Don't send it again.");
                         continue;
                     }
 
                     try {
 
+                        String recipientName = recipientLine.split("\t")[0];
+                        String recipientEmail = recipientLine.split("\t")[1];
+
                         String tplName = emailProperties.get("emailBodyTemplate");
                         ST emailBodyTemplate = templateGrp.getInstanceOf(tplName);
                         emailBodyTemplate.add("senderName", senderName);
-                        emailBodyTemplate.add("recipientName", transforRecipientEmailToName.apply(recipientEmail));
+                        emailBodyTemplate.add("recipientName", recipientName);
                         String parsedBody = emailBodyTemplate.render();
 
 
@@ -110,15 +142,16 @@ public class MailSender {
                         mailData.put("username", accountProperties.get("username"));
                         mailData.put("password", accountProperties.get("password"));
 
-                        SendMailSSL.send(mailData);
+                        //SendMailSSL.send(mailData);
 
                         // add to sent mails
-                        newAlreadySentRecipients.add(recipientEmail);
+                        newAlreadySentRecipients.add(recipientLine);
 
                         counter++;
                     } catch (Exception e) {
                         e.printStackTrace();
-                        throw e;
+                        newBadEmails.add(recipientLine);
+                        //throw e;
                     }
                 }
             } catch (Exception e) {
@@ -184,6 +217,9 @@ public class MailSender {
             return parseEmailAdressesFromFile(fileName);
         }
 
+        public static List<String> parseBadEmails(String fileName) throws Exception{
+            return parseEmailAdressesFromFile(fileName);
+        }
 
         public static List<String> parseEmailAdressesFromFile(String fileName) throws Exception{
             logger.info(fileName);

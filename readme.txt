@@ -7,6 +7,8 @@ I. Input:
 		- senderName : you can use it in the tmeplate as parameter in the format of : {senderName}
 		- recipientSource: the name of the file what contains the recipinets list. Thre is one email address / line
 		- alreadySentRecipientsSource: the name of the file what contains the list of email addresses to where email was already sent by the application
+		- badEmailAddresses: list of mail addresses what dropped exception during the sending process.
+		- packageSize: how many mail will be send
 		There is an another template parameter : {recipientName} . It is calculeted from the recipient email address by cutting the @domain part from the addtress.
 		pl: JohnDoo@gmail.com -> johnDoo
 
@@ -23,4 +25,4 @@ II. Output:
 
 
 
-Important: If you want use your gmail account to send mails, you have to switch on "Allow less secure apps" temporaly. Link : https://myaccount.google.com/lesssecureapps
+Important: If you want to use your gmail account to send mails, you have to switch on "Allow less secure apps" temporaly. Link : https://myaccount.google.com/lesssecureapps
