@@ -142,7 +142,7 @@ public class MailSender {
                         mailData.put("username", accountProperties.get("username"));
                         mailData.put("password", accountProperties.get("password"));
 
-                        SendMailSSL.send(mailData);
+                        //SendMailSSL.send(mailData);
 
                         // add to sent mails
                         newAlreadySentRecipients.add(recipientLine);
@@ -225,17 +225,13 @@ public class MailSender {
             logger.info(fileName);
             Path path = Paths.get(".", fileName);
 
-            try(Stream<String> lines = Files.lines(path)){
-
-            } catch (IOException ioe) {
-                return new ArrayList<>();
-            }
-
             List list;
             try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
 
                 list = stream
                         .map(String :: trim)
+                        .map(line -> line.replace("\uFEFF", ""))
+                        .filter(line -> !line.isEmpty())
                         .collect(Collectors.toList());
 
             } catch (IOException e) {
