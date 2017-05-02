@@ -142,7 +142,7 @@ public class MailSender {
                         mailData.put("username", accountProperties.get("username"));
                         mailData.put("password", accountProperties.get("password"));
 
-                        //SendMailSSL.send(mailData);
+                        SendMailSSL.send(mailData);
 
                         // add to sent mails
                         newAlreadySentRecipients.add(recipientLine);
