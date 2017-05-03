@@ -149,6 +149,7 @@ public class MailSender {
 
                         counter++;
                     } catch (Exception e) {
+                        logger.severe("Error during sending mail :: " + e.getMessage());
                         e.printStackTrace();
                         newBadEmails.add(recipientLine);
                         //throw e;
