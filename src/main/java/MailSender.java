@@ -106,6 +106,13 @@ public class MailSender {
 
             try {
 
+                Map<String, String> mailData = new HashMap<>();
+                mailData.put("subject", emailProperties.get("subject"));
+                mailData.put("senderEmail", accountProperties.get("email"));
+                mailData.put("username", accountProperties.get("username"));
+                mailData.put("password", accountProperties.get("password"));
+
+                SendMailSSL sendMail = new SendMailSSL(mailData);
                 for (String recipientLine : recipients) {
 
                     if (counter >= packageSize) {
@@ -134,15 +141,17 @@ public class MailSender {
                         String parsedBody = emailBodyTemplate.render();
 
 
-                        Map<String, String> mailData = new HashMap<>();
                         mailData.put("body", parsedBody);
                         mailData.put("recipientEmail", recipientEmail);
-                        mailData.put("subject", emailProperties.get("subject"));
-                        mailData.put("senderEmail", accountProperties.get("email"));
-                        mailData.put("username", accountProperties.get("username"));
-                        mailData.put("password", accountProperties.get("password"));
 
-                        SendMailSSL.send(mailData);
+
+                        sendMail.send(mailData);
+
+                        try {
+                            Thread.sleep(1000);                 //1000 milliseconds is one second.
+                        } catch(InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                        }
 
                         // add to sent mails
                         newAlreadySentRecipients.add(recipientLine);

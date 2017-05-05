@@ -12,22 +12,17 @@ public class SendMailSSL {
 
     private final static Logger logger = MailSender.getLogger();
 
-    public static void send(Map<String, String> mailData) throws Exception{
+    private Session session;
+    private final String username;
+    private final String password;
+    private final String subject;
+    private final String senderEmail;
 
-        final String body = mailData.get("body");
-        final String recipientEmail = mailData.get("recipientEmail");
-        final String subject = mailData.get("subject");
-        final String senderEmail = mailData.get("senderEmail");
-        final String username = mailData.get("username");
-        final String password = mailData.get("password");
-
-
-        logger.info("----------------------Email--------------------");
-        logger.info("senderEmail :: " + senderEmail);
-        logger.info("recipientEmail :: " + recipientEmail);
-        logger.info("subject :: " + subject);
-        logger.info("body :: " + body);
-
+    public SendMailSSL(Map<String, String> mailData) {
+        subject = mailData.get("subject");
+        senderEmail = mailData.get("senderEmail");
+        username = mailData.get("username");
+        password = mailData.get("password");
 
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.gmail.com");
@@ -37,12 +32,19 @@ public class SendMailSSL {
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.port", "465");
 
-        Session session = Session.getDefaultInstance(props,
+        session = Session.getDefaultInstance(props,
                 new javax.mail.Authenticator() {
                     protected PasswordAuthentication getPasswordAuthentication() {
                         return new PasswordAuthentication(username, password);
                     }
                 });
+    }
+
+    public void send(Map<String, String> mailData) throws Exception{
+
+        final String body = mailData.get("body");
+        final String recipientEmail = mailData.get("recipientEmail");
+
 
 
         Message message = new MimeMessage(session);
@@ -52,7 +54,21 @@ public class SendMailSSL {
         message.setSubject(subject);
         message.setText(body);
 
-        Transport.send(message);
+
+
+        logger.info("----------------------Email--------------------");
+        logger.info("senderEmail :: " + senderEmail);
+        logger.info("recipientEmail :: " + recipientEmail);
+        logger.info("subject :: " + subject);
+        logger.info("body :: " + body);
+
+
+        Transport transport = session.getTransport("smtp");
+        transport.connect(username, password);
+        transport.sendMessage(message, message.getAllRecipients());
+        transport.close();
+
+        //Transport.send(message);
 
         logger.info("Email sent.");
         logger.info("----------------------End Email--------------------");
