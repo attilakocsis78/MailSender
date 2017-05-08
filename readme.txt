@@ -24,4 +24,4 @@ II. Output:
 
 
 
-Important: If you want to use your gmail account to send mails, you have to switch on "Allow less secure apps" temporaly. Link : https://myaccount.google.com/lesssecureapps
+!Important: If you want to use your gmail account to send mails, you have to switch on "Allow less secure apps" temporaly. Link : https://myaccount.google.com/lesssecureapps
